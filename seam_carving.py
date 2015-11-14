@@ -31,21 +31,29 @@ class SeamCarver:
         return sobel_image
 
     def min_energy(self):
+        """
+        Converts energy values to cumulative energy values
+        """
         image = self.energy()
         out_image = np.zeros((self.height, self.width))
         out_image[0][:] = image[0][:]
 
-        for i in range(1, self.height):
-            for j in range(0, self.width):
-                if j - 1 < 0:
+        for i in range(self.height):
+            for j in range(self.width):
+                if i == 0:
+                    out_image[i, j] = image[i, j]
+                elif j == 0:
                     out_image[i, j] = image[i, j] + min(out_image[i-1, j], out_image[i-1, j+1])
-                elif j + 1 >= self.width:
+                elif j == self.width - 1:
                     out_image[i, j] = image[i, j] + min(out_image[i-1, j-1], out_image[i-1, j])
                 else:
                     out_image[i, j] = image[i, j] + min(out_image[i-1, j-1], out_image[i-1, j], out_image[i-1, j+1])
         return out_image
 
     def seam(self):
+        """
+        Finds the shortest path
+        """
         image = self.min_energy()
         seam_image = np.zeros((self.height, 1))
         i = self.height - 1
