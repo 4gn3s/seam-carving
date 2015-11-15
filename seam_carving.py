@@ -4,9 +4,11 @@ import scipy.ndimage
 
 IMAGE_FILE = 'image.jpg'
 
+
 class SeamCarver:
     def __init__(self, image):
         self.image = scipy.misc.imread(image)
+        self.grayscale_coeffs = [.299, .587, .144]
         self.initialize()
 
     def initialize(self):
@@ -18,7 +20,7 @@ class SeamCarver:
     @property
     def grayscale(self):
         if not self.grayscale_image:
-            self.grayscale_image = np.dot(self.image[:, :, :3], [.299, .587, .144])
+            self.grayscale_image = np.dot(self.image[:, :, :3], self.grayscale_coeffs)
         return self.grayscale_image
 
     def energy(self):
@@ -58,21 +60,31 @@ class SeamCarver:
         """
         image = self.min_energy()
         seam_image = np.zeros((self.height, 1))
-        i = self.height - 1
-        # start: minimum enery in the bottom row
-        min_value = min(image[i,:])
-        j = np.where(image[i][:] == min_value)[0][0]
-        i -= 1
-        while i >= -1:
-            if seam_image[i + 1, 0] == 0:
-                t = [float("Inf"), image[i, seam_image[i + 1, 0]], image[i, seam_image[i + 1, 0] + 1]]
-            elif seam_image[i + 1, 0] == self.width - 1:
-                t = [image[i, seam_image[i + 1, 0] - 1], image[i, seam_image[i + 1, 0]], float("Inf")]
+        for i in reversed(range(0, self.height)):
+            if i == self.height - 1:
+                value = min(image[i, :])
+                j = np.where(image[i][:] == value)[0][0]
             else:
-                t = [image[i, seam_image[i + 1, 0] - 1], image[i, seam_image[i + 1, 0]], image[i, seam_image[i + 1, 0] + 1]]
-            j = seam_image[i + 1, 0] + np.argmin(t) - 1
+                if seam_image[i + 1, 0] == 0:
+                    tmp = [
+                        float("Inf"),
+                        image[i, seam_image[i + 1, 0]],
+                        image[i, seam_image[i + 1, 0] + 1]
+                    ]
+                elif seam_image[i + 1, 0] == self.width - 1:
+                    tmp = [
+                        image[i, seam_image[i + 1, 0] - 1],
+                        image[i, seam_image[i + 1, 0]],
+                        float("Inf")
+                    ]
+                else:
+                    tmp = [
+                        image[i, seam_image[i + 1, 0] - 1],
+                        image[i, seam_image[i + 1, 0]],
+                        image[i, seam_image[i + 1, 0] + 1]
+                    ]
+                j = seam_image[i+1, 0] + np.argmin(tmp) - 1
             seam_image[i, 0] = j
-            i -= 1
         return seam_image
 
     def cut_seam(self):
@@ -80,13 +92,22 @@ class SeamCarver:
         result = np.zeros((self.height, self.width - 1, self.dim))
         for i in range(0, self.dim):
             for j in range(0, self.height):
-                if seam[j, 0] ==  0:
-                    result[j, :, i] = self.image[j, 1 : self.width, i]
-                elif seam[j, 0] == self.width - 1:
-                    result[j, :, i] = self.image[j, 0 : self.width - 1, i]
-                else:
-                    result[j, :, i] = np.append(self.image[j, 0 : seam[j, 0], i],
-                                              self.image[j, seam[j, 0] + 1 : self.width,i])
+                result[j, :, i] = np.append(self.image[j, 0: seam[j, 0], i],
+                                            self.image[j, seam[j, 0] + 1: self.width, i]
+                                            )
+        debug_image = self.debug(seam)
+        scipy.misc.imsave("debug.jpg", debug_image)
+
+        return result
+
+    def add_seam(self):
+        seam = self.seam()
+        result = np.zeros((self.height, self.width + 1, self.dim))
+        for i in range(0, self.dim):
+            for j in range(0, self.height):
+                result[j, :, i] = np.append(self.image[j, 0: seam[j, 0] + 1, i],
+                                            self.image[j, seam[j, 0]: self.width, i]
+                                            )
         debug_image = self.debug(seam)
         scipy.misc.imsave("debug.jpg", debug_image)
 
@@ -103,7 +124,7 @@ class SeamCarver:
         iterations = self.width - desired_width + 1
         current_iteration = 0
         while current_iteration < iterations:
-            print("Resizing from %s to %s", self.width, self.width-1)
+            print("Resizing from %s to %s" % (self.width, self.width-1))
             self.image = self.cut_seam()
             self.initialize()
             current_iteration += 1
@@ -111,7 +132,6 @@ class SeamCarver:
 
     def resize(self, desired_width, desired_height):
         image = self.cut_seams(desired_width)
-        #maybe this trick does not work so well
         self.image = image.transpose(1, 0, 2)
         self.initialize()
         image = self.cut_seams(desired_height)
@@ -120,5 +140,8 @@ class SeamCarver:
 
 if __name__ == '__main__':
     sc = SeamCarver(IMAGE_FILE)
-    image = sc.resize(400, 200)
-    scipy.misc.imsave("final.jpg", image)
+    for x in xrange(100):
+        sc.image = sc.add_seam()
+        sc.initialize()
+    #image = sc.resize(400, 200)
+    scipy.misc.imsave("final.jpg", sc.image)
