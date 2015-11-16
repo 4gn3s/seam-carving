@@ -20,6 +20,7 @@ class Image:
     def transpose(self):
         self.image = self.image.transpose(1, 0, 2)
         self.transposed = not self.transposed
+        return self.image
 
     def from_image(self, image):
         self.image = image
@@ -27,7 +28,7 @@ class Image:
         return self
 
     def from_file(self, image_file):
-        self.image = scipy.misc.imread(image)
+        self.image = scipy.misc.imread(image_file)
         self.initialize()
         return self
 
@@ -40,7 +41,7 @@ class Image:
     @property
     def greyscale(self):
         if not self.greyscale_image:
-            self.greyscale_image = np.dot(self.image[:, :, :3], self.grayscale_coeffs)
+            self.greyscale_image = np.dot(self.image[:, :, :3], self.greyscale_coeffs)
         return self.greyscale_image
 
     @property
@@ -143,7 +144,7 @@ class SeamCarver:
                 result[j, :, i] = np.append(self.image.image[j, 0: seam[j, 0], i],
                                             self.image.image[j, seam[j, 0] + 1: self.image.width, i]
                                             )
-        debug_image = self.debug(seam)
+        debug_image = self.image.debug(seam)
         scipy.misc.imsave("debug.jpg", debug_image)
 
         return result
@@ -157,7 +158,7 @@ class SeamCarver:
                                             # we should take the average of neighbouring two columns
                                             self.image.image[j, seam[j, 0]: self.image.width, i]
                                             )
-        debug_image = self.debug(seam)
+        debug_image = self.image.debug(seam)
         scipy.misc.imsave("debug.jpg", debug_image)
 
         return result
@@ -174,17 +175,16 @@ class SeamCarver:
     def resize(self, desired_width, desired_height):
         # this function should perform adding/ removing seams as needed
         image = self.cut_seams(desired_width)
-        self.image = Image().from_image(image.transpose(1, 0, 2))
+        self.image = Image().from_image(image.transpose())
         image = self.cut_seams(desired_height)
-        image = image.transpose(1, 0, 2)
+        image = image.transpose()
         return image
 
 if __name__ == '__main__':
     # think of creating an ipython notebook to show each steps
     # create gif showing each steps
     sc = SeamCarver(IMAGE_FILE)
-    for x in xrange(100):
-        sc.image = Image().from_image(sc.add_seam())
-        sc.initialize()
-    #image = sc.resize(400, 200)
+    # for x in xrange(100):
+    #     sc.image = Image().from_image(sc.add_seam())
+    image = sc.resize(400, 200)
     scipy.misc.imsave("final.jpg", sc.image)
