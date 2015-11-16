@@ -62,8 +62,13 @@ class SeamCarver:
         result = np.zeros((self.image.height, self.image.width + 1, self.image.dim))
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
+                x = seam[j, 0]
+                if x < self.image.width - 2:
+                    vector_average = np.array([(self.image.image[j, x, i] + self.image.image[j, x + 1, i])/2.0])
+                else:
+                    vector_average = np.array([(self.image.image[j, x, i] + self.image.image[j, x - 1, i])/2.0])
                 tmp = np.append(self.image.image[j, 0: seam[j, 0] + 1, i],
-                                np.array((self.image.image[j, seam[j, 0], i] + self.image.image[j, seam[j, 0]+1, i])/2.0))
+                                vector_average)
                 result[j, :, i] = np.append(tmp, self.image.image[j, seam[j, 0] + 1: self.image.width, i])
         debug_image = self.image.debug(seam)
         scipy.misc.imsave("debug.jpg", debug_image)
@@ -91,7 +96,7 @@ if __name__ == '__main__':
     # think of creating an ipython notebook to show each steps
     # create gif showing each steps
     sc = SeamCarver(IMAGE_FILE)
-    # for x in xrange(100):
-    #     sc.image = Image().from_image(sc.add_seam())
-    image = sc.resize(300, 200)
+    for x in xrange(100):
+        sc.image = Image().from_image(sc.add_seam())
+    # image = sc.resize(300, 200)
     scipy.misc.imsave("final.jpg", sc.image)
