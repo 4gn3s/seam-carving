@@ -88,6 +88,7 @@ class Image:
         return self.min_energy_image
 
     def debug(self, seam):
+        # add an argument to save file to a directory
         image = self.image.copy()
         color = [255] * 3
         for i in range(len(seam)):

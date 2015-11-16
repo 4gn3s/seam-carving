@@ -3,6 +3,7 @@ import scipy.misc
 import scipy.ndimage
 
 from image import Image
+from animation_maker import AnimationMaker
 
 IMAGE_FILE = 'image.jpg'
 
@@ -10,6 +11,7 @@ IMAGE_FILE = 'image.jpg'
 class SeamCarver:
     def __init__(self, image_file):
         self.image = Image().from_file(image_file)
+        self.debug_animation = AnimationMaker()
 
     def seam(self):
         """
@@ -53,6 +55,7 @@ class SeamCarver:
                                             self.image.image[j, seam[j, 0] + 1: self.image.width, i]
                                             )
         debug_image = self.image.debug(seam)
+        self.debug_animation.add(Image().from_image(debug_image))
         scipy.misc.imsave("debug.jpg", debug_image)
 
         return result
@@ -99,4 +102,5 @@ if __name__ == '__main__':
     for x in xrange(100):
         sc.image = Image().from_image(sc.add_seam())
     # image = sc.resize(300, 200)
-    scipy.misc.imsave("final.jpg", sc.image)
+    # scipy.misc.imsave("final.jpg", sc.image)
+    sc.debug_animation.export_gif()
