@@ -10,7 +10,7 @@ IMAGE_FILE = 'image.jpg'
 
 class SeamCarver:
     def __init__(self, image_file):
-        self.image = Image().from_file(image_file)
+        self.image = Image.from_file(image_file)
         self.debug_animation = AnimationMaker()
 
     def seam(self):
@@ -44,21 +44,21 @@ class SeamCarver:
                     ]
                 j = seam_image[i+1, 0] + np.argmin(tmp) - 1
             seam_image[i, 0] = j
-        return seam_image
+        return Image.from_image_array(array=seam_image, transposed=self.image.transposed)
 
     def cut_seam(self):
         seam = self.seam()
         result = np.zeros((self.image.height, self.image.width - 1, self.image.dim))
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
-                result[j, :, i] = np.append(self.image.image[j, 0: seam[j, 0], i],
-                                            self.image.image[j, seam[j, 0] + 1: self.image.width, i]
+                result[j, :, i] = np.append(self.image.array[j, 0: seam.array[j, 0], i],
+                                            self.image.array[j, seam.array[j, 0] + 1: self.image.width, i]
                                             )
-        debug_image = self.image.debug(seam)
-        self.debug_animation.add(Image().from_image(debug_image))
-        scipy.misc.imsave("debug.jpg", debug_image)
+        debug_image = self.image.debug(seam.array)
+        self.debug_animation.add(Image.from_image_array(debug_image, transposed=seam.transposed))
+        scipy.misc.imsave("debug/debug.jpg", debug_image)
 
-        return result
+        return Image.from_image_array(array=result, transposed=seam.transposed)
 
     def add_seam(self):
         seam = self.seam()
@@ -67,40 +67,37 @@ class SeamCarver:
             for j in range(0, self.image.height):
                 x = seam[j, 0]
                 if x < self.image.width - 2:
-                    vector_average = np.array([(self.image.image[j, x, i] + self.image.image[j, x + 1, i])/2.0])
+                    vector_average = np.array([(self.image.array[j, x, i] + self.image.array[j, x + 1, i])/2.0])
                 else:
-                    vector_average = np.array([(self.image.image[j, x, i] + self.image.image[j, x - 1, i])/2.0])
+                    vector_average = np.array([(self.image.array[j, x, i] + self.image.array[j, x - 1, i])/2.0])
                 tmp = np.append(self.image.image[j, 0: seam[j, 0] + 1, i],
                                 vector_average)
-                result[j, :, i] = np.append(tmp, self.image.image[j, seam[j, 0] + 1: self.image.width, i])
+                result[j, :, i] = np.append(tmp, self.image.array[j, seam[j, 0] + 1: self.image.width, i])
         debug_image = self.image.debug(seam)
-        scipy.misc.imsave("debug.jpg", debug_image)
+        scipy.misc.imsave("debug/debug.jpg", debug_image)
 
-        return result
+        return Image.from_image_array(array=result, transposed=seam.transposed)
 
     def cut_seams(self, desired_width):
-        iterations = self.image.width - desired_width + 1
+        iterations = self.image.width - desired_width
         current_iteration = 0
         while current_iteration < iterations:
             print("Resizing from %s to %s" % (self.image.width, self.image.width-1))
-            self.image = Image().from_image(self.cut_seam())
+            self.image = self.cut_seam()
             current_iteration += 1
-        return self.image
 
     def resize(self, desired_width, desired_height):
         # this function should perform adding/ removing seams as needed
-        image = self.cut_seams(desired_width)
-        self.image = Image().from_image(image.transpose())
-        image = self.cut_seams(desired_height)
-        image = image.transpose()
-        return image
+        self.cut_seams(desired_width)
+        self.image.do_transpose()
+        self.cut_seams(desired_height)
+        return self.image
 
 if __name__ == '__main__':
-    # think of creating an ipython notebook to show each steps
     # create gif showing each steps
     sc = SeamCarver(IMAGE_FILE)
-    for x in xrange(100):
-        sc.image = Image().from_image(sc.add_seam())
-    # image = sc.resize(300, 200)
+    # for x in range(100):
+    #     sc.image = Image().from_image(sc.add_seam())
+    image = sc.resize(400, 400)
     # scipy.misc.imsave("final.jpg", sc.image)
     sc.debug_animation.export_gif()

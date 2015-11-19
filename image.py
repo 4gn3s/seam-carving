@@ -4,42 +4,51 @@ import scipy.ndimage
 
 
 class Image:
-    def __init__(self):
-        self.greyscale_coeffs = [.299, .587, .144]
-        self.transposed = False
-        self.image = None
+    def __init__(self, array=None, transposed=False):
+        self.array = array
         self.width = 0
         self.height = 0
         self.dim = 0
+        self.initialize()
+        self.greyscale_coeffs = [.299, .587, .144]
+        self.transposed = transposed
+        if transposed:
+            self.do_transpose()
         self.greyscale_image = None
         self.sobel_image = None
         self.min_energy_image = None
 
-    def transpose(self):
-        self.image = self.image.transpose(1, 0, 2)
+    def do_transpose(self):
+        if self.dim == 3:
+            self.array = self.array.transpose(1, 0, 2)
+        else:
+            self.array = self.array.transpose(1, 0)
         self.transposed = not self.transposed
-        return self.image
-
-    def from_image(self, image):
-        self.image = image
         self.initialize()
-        return self
+        return self.array
 
-    def from_file(self, image_file):
-        self.image = scipy.misc.imread(image_file)
-        self.initialize()
-        return self
+    @classmethod
+    def from_image(cls, image):
+        return cls(image.array, image.transposed)
+
+    @classmethod
+    def from_image_array(cls, array, transposed=False):
+        return cls(array, transposed)
+
+    @classmethod
+    def from_file(cls, image_file):
+        return cls(scipy.misc.imread(image_file))
 
     def initialize(self):
-        self.width = self.image.shape[1]
-        self.height = self.image.shape[0]
-        self.dim = self.image.shape[2]
-        self.greyscale_image = None
+        self.width = self.array.shape[1]
+        self.height = self.array.shape[0]
+        if len(self.array.shape) > 2:
+            self.dim = self.array.shape[2]
 
     @property
     def greyscale(self):
         if not self.greyscale_image:
-            self.greyscale_image = np.dot(self.image[:, :, :3], self.greyscale_coeffs)
+            self.greyscale_image = np.dot(self.array[:, :, :3], self.greyscale_coeffs)
         return self.greyscale_image
 
     @property
@@ -89,7 +98,7 @@ class Image:
 
     def debug(self, seam):
         # add an argument to save file to a directory
-        image = self.image.copy()
+        image = self.array.copy()
         color = [255] * 3
         for i in range(len(seam)):
             image[i][seam[i][0]] = color
