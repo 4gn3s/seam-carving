@@ -44,11 +44,12 @@ class SeamCarver:
                     ]
                 j = seam_image[i+1, 0] + np.argmin(tmp) - 1
             seam_image[i, 0] = j
-        return Image.from_image_array(array=seam_image, transposed=self.image.transposed)
+        return Image.from_image_array(array=seam_image)
 
     def cut_seam(self):
         seam = self.seam()
         result = np.zeros((self.image.height, self.image.width - 1, self.image.dim))
+        print(seam.array.shape)
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
                 result[j, :, i] = np.append(self.image.array[j, 0: seam.array[j, 0], i],
