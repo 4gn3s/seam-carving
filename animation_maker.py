@@ -1,5 +1,5 @@
 import numpy as np
-from moviepy.editor import ImageSequenceClip
+import moviepy.editor as mpy
 
 
 class AnimationMaker:
@@ -12,6 +12,7 @@ class AnimationMaker:
         self.max_height = 0
         self.max_dimensions = 0
         self.default_FPS = 25
+        self.current_step = 0
 
     def add(self, image):
         self.sequence.append(image)
@@ -22,16 +23,20 @@ class AnimationMaker:
         if self.max_dimensions < image.dim:
             self.max_dimensions = image.dim
 
+    def frame(self, t):
+        image = self.sequence[self.current_step]
+        self.current_step += 1
+        image_array = image.array
+        resized = np.zeros((self.max_height, self.max_width, self.max_dimensions))
+        resized.fill(255)  # to have gifs with white background
+        shape = image_array.shape
+        resized[:shape[0], :shape[1], :shape[2]] = image_array
+        return resized
+
     @property
     def clip(self):
-        new_sequence = []
-        for i, image in enumerate(self.sequence):
-            image_array = image.array
-            resized = np.zeros((self.max_height, self.max_width, self.max_dimensions))
-            shape = image_array.shape
-            resized[:shape[0], :shape[1], :shape[2]] = image_array
-            new_sequence.append(resized)
-        return ImageSequenceClip(new_sequence, fps=self.default_FPS)
+        self.current_step = 0
+        return mpy.VideoClip(self.frame, duration=(len(self.sequence)-1)/self.default_FPS)
 
     def export_webm(self, filename="debug/animation.webm"):
         self.clip.write_videofile(filename, audio=False)

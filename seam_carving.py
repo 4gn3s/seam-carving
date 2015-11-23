@@ -3,8 +3,6 @@ import numpy as np
 from image import Image
 from animation_maker import AnimationMaker
 
-IMAGE_FILE = 'image.jpg'
-
 
 class SeamCarver:
     def __init__(self, image_file):
@@ -70,13 +68,13 @@ class SeamCarver:
         result = np.zeros((self.image.height, self.image.width + 1, self.image.dim))
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
-                x = seam[0, j] if seam.transposed else seam[j, 0]
+                x = seam.array[0, j] if seam.transposed else seam.array[j, 0]
                 if x < self.image.width - 2:
                     vector_average = np.array([(self.image.array[j, x, i] + self.image.array[j, x + 1, i])/2.0])
                 else:
                     vector_average = np.array([(self.image.array[j, x, i] + self.image.array[j, x - 1, i])/2.0])
 
-                tmp = np.append(self.image.image[j, 0: x + 1, i], vector_average)
+                tmp = np.append(self.image.array[j, 0: x + 1, i], vector_average)
                 result[j, :, i] = np.append(tmp, self.image.array[j, x + 1: self.image.width, i])
 
         debug_image = self.image.debug(seam)
@@ -112,14 +110,10 @@ class SeamCarver:
         if desired_height < self.image.height:
             self.image.transposed = True
             self.cut_seams(desired_height)
+            self.image.transposed = False
         else:
             self.image.transposed = True
             self.add_seams(desired_height)
+            self.image.transposed = False
 
         return self.image
-
-if __name__ == '__main__':
-    sc = SeamCarver(IMAGE_FILE)
-    image = sc.resize(400, 400)
-    # scipy.misc.imsave("final.jpg", sc.image)
-    sc.debug_animation.export_gif()

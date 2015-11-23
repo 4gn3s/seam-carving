@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.misc
 import scipy.ndimage
+from PIL import Image as PILImage
 
 
 class Image:
@@ -123,3 +124,7 @@ class Image:
             else:
                 image[i][seam_array[i][0]] = color
         return image
+
+    def save(self, filename):
+        im = PILImage.fromarray(self.array.astype('uint8'))
+        im.save(filename)
