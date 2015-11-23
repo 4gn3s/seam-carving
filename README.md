@@ -2,9 +2,8 @@
 
 1. Algorithm outline with step-by-step images
 2. Examples
-  * scaling up
-	![result](https://raw.github.com/4gn3s/seam-carving/master/static/bigger.jpg)
-	![animation](https://raw.github.com/4gn3s/seam-carving/master/static/bigger.gif)
-  * scaling down
-	![result](https://raw.github.com/4gn3s/seam-carving/master/static/smaller.jpg)
-	![animation](https://raw.github.com/4gn3s/seam-carving/master/static/smaller.gif)
+
+## Scaling down
+![animation resize to smaller](https://github.com/4gn3s/seam-carving/raw/master/static/smaller.gif)
+## Scaling up
+![animation resize to bigger](https://github.com/4gn3s/seam-carving/raw/master/static/bigger.gif)
