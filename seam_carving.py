@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.misc
 import scipy.ndimage
+import random
 
 from image import Image
 from animation_maker import AnimationMaker
@@ -44,7 +45,7 @@ class SeamCarver:
                     ]
                 j = seam_image[i+1, 0] + np.argmin(tmp) - 1
             seam_image[i, 0] = j
-        return Image.from_image_array(array=seam_image)
+        return Image.from_image_array(array=seam_image, transposed=self.image.transposed)
 
     def cut_seam(self):
         seam = self.seam()
@@ -52,14 +53,21 @@ class SeamCarver:
         print(seam.array.shape)
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
-                result[j, :, i] = np.append(self.image.array[j, 0: seam.array[j, 0], i],
-                                            self.image.array[j, seam.array[j, 0] + 1: self.image.width, i]
-                                            )
-        debug_image = self.image.debug(seam.array)
-        self.debug_animation.add(Image.from_image_array(debug_image, transposed=seam.transposed))
-        scipy.misc.imsave("debug/debug.jpg", debug_image)
+                if seam.transposed:
+                    result[j, :, i] = np.append(self.image.array[j, 0: seam.array[0, j], i],
+                                                self.image.array[j, seam.array[0, j] + 1: self.image.width, i]
+                                                )
+                else:
+                    result[j, :, i] = np.append(self.image.array[j, 0: seam.array[j, 0], i],
+                                                self.image.array[j, seam.array[j, 0] + 1: self.image.width, i]
+                                                )
+        debug_image = self.image.debug(seam)
+        self.debug_animation.add(Image.from_image_array(debug_image, transposed=self.image.transposed))
 
-        return Image.from_image_array(array=result, transposed=seam.transposed)
+        if self.image.transposed:
+            result = result.transpose(1, 0, 2)
+
+        return Image.from_image_array(array=result, transposed=self.image.transposed)
 
     def add_seam(self):
         seam = self.seam()
@@ -75,7 +83,6 @@ class SeamCarver:
                                 vector_average)
                 result[j, :, i] = np.append(tmp, self.image.array[j, seam[j, 0] + 1: self.image.width, i])
         debug_image = self.image.debug(seam)
-        scipy.misc.imsave("debug/debug.jpg", debug_image)
 
         return Image.from_image_array(array=result, transposed=seam.transposed)
 
@@ -84,13 +91,14 @@ class SeamCarver:
         current_iteration = 0
         while current_iteration < iterations:
             print("Resizing from %s to %s" % (self.image.width, self.image.width-1))
+            print("Transposed " + str(self.image.transposed))
             self.image = self.cut_seam()
             current_iteration += 1
 
     def resize(self, desired_width, desired_height):
         # this function should perform adding/ removing seams as needed
         self.cut_seams(desired_width)
-        self.image.do_transpose()
+        self.image.transposed = True
         self.cut_seams(desired_height)
         return self.image
 

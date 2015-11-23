@@ -5,27 +5,39 @@ import scipy.ndimage
 
 class Image:
     def __init__(self, array=None, transposed=False):
-        self.array = array
-        self.width = 0
-        self.height = 0
-        self.dim = 0
-        self.initialize()
+        self._array = array
         self.greyscale_coeffs = [.299, .587, .144]
         self.transposed = transposed
-        if transposed:
-            self.do_transpose()
         self.greyscale_image = None
         self.sobel_image = None
         self.min_energy_image = None
 
-    def do_transpose(self):
-        if self.dim == 3:
-            self.array = self.array.transpose(1, 0, 2)
-        else:
-            self.array = self.array.transpose(1, 0)
-        self.transposed = not self.transposed
-        self.initialize()
-        return self.array
+    @property
+    def array(self):
+        if self.transposed:
+            if self.dim == 3:
+                return self._array.transpose(1, 0, 2)
+            else:
+                return self._array.transpose(1, 0)
+        return self._array
+
+    @property
+    def width(self):
+        if self.transposed:
+            return self._array.shape[0]
+        return self._array.shape[1]
+
+    @property
+    def height(self):
+        if self.transposed:
+            return self._array.shape[1]
+        return self._array.shape[0]
+
+    @property
+    def dim(self):
+        if len(self._array.shape) > 2:
+            return self._array.shape[2]
+        return 2
 
     @classmethod
     def from_image(cls, image):
@@ -38,12 +50,6 @@ class Image:
     @classmethod
     def from_file(cls, image_file):
         return cls(scipy.misc.imread(image_file))
-
-    def initialize(self):
-        self.width = self.array.shape[1]
-        self.height = self.array.shape[0]
-        if len(self.array.shape) > 2:
-            self.dim = self.array.shape[2]
 
     @property
     def greyscale(self):
@@ -98,10 +104,12 @@ class Image:
 
     def debug(self, seam):
         # add an argument to save file to a directory
-        image = self.array.copy()
+        image = self.array
         color = [255] * 3
-        for i in range(len(seam)):
-            image[i][seam[i][0]] = color
-        if self.transposed:
-            image = image.transpose(1, 0, 2)
+        seam_array = seam.array
+        for i in range(len(seam_array)):
+            if seam.transposed:
+                image[i][seam_array[0][i]] = color
+            else:
+                image[i][seam_array[i][0]] = color
         return image

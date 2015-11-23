@@ -12,7 +12,7 @@ class AnimationMaker:
         self.default_FPS = 25
 
     def add(self, image):
-        self.sequence.append(image.array)
+        self.sequence.append(image)
         if self.max_height < image.height:
             self.max_height = image.height
         if self.max_width < image.width:
@@ -25,10 +25,11 @@ class AnimationMaker:
         # resize all images in the sequence here
         new_sequence = []
         for i, image in enumerate(self.sequence):
-            print("Resizing from " + str(image.shape) + " to (" +
+            image_array = image.array
+            print("Resizing from " + str(image_array.shape) + " to (" +
                   str(self.max_height) + ", " + str(self.max_width) + ", " + str(self.max_dimensions) + ")")
             resized = np.zeros((self.max_height, self.max_width, self.max_dimensions))
-            resized[:image.shape[0], :image.shape[1], :image.shape[2]] = image
+            resized[:image_array.shape[0], :image_array.shape[1], :image_array.shape[2]] = image_array
             scipy.misc.imsave("debug/resized" + str(i) + ".jpg", resized)
             new_sequence.append(resized)
         return ImageSequenceClip(new_sequence, fps=self.default_FPS)
