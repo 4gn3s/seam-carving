@@ -103,11 +103,11 @@ class Image:
         return self.min_energy_image
 
     def debug(self, seam):
-        # add an argument to save file to a directory
         image = self.array
         color = [255] * 3
         seam_array = seam.array
-        for i in range(len(seam_array)):
+        size = seam.width if seam.width > seam.height else seam.height
+        for i in range(size):
             if seam.transposed:
                 image[i][seam_array[0][i]] = color
             else:

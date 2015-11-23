@@ -1,7 +1,4 @@
 import numpy as np
-import scipy.misc
-import scipy.ndimage
-import random
 
 from image import Image
 from animation_maker import AnimationMaker
@@ -50,7 +47,6 @@ class SeamCarver:
     def cut_seam(self):
         seam = self.seam()
         result = np.zeros((self.image.height, self.image.width - 1, self.image.dim))
-        print(seam.array.shape)
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
                 if seam.transposed:
@@ -91,7 +87,6 @@ class SeamCarver:
         current_iteration = 0
         while current_iteration < iterations:
             print("Resizing from %s to %s" % (self.image.width, self.image.width-1))
-            print("Transposed " + str(self.image.transposed))
             self.image = self.cut_seam()
             current_iteration += 1
 
@@ -107,6 +102,6 @@ if __name__ == '__main__':
     sc = SeamCarver(IMAGE_FILE)
     # for x in range(100):
     #     sc.image = Image().from_image(sc.add_seam())
-    image = sc.resize(400, 400)
+    image = sc.resize(420, 420)
     # scipy.misc.imsave("final.jpg", sc.image)
     sc.debug_animation.export_gif()
