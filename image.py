@@ -14,6 +14,9 @@ class Image:
 
     @property
     def array(self):
+        """
+        :return: the image array (transposed if needed)
+        """
         if self.transposed:
             if self.dim == 3:
                 return self._array.transpose(1, 0, 2)
@@ -53,6 +56,9 @@ class Image:
 
     @property
     def greyscale(self):
+        """
+        :return: greyscale image transposed if needed
+        """
         if not self.greyscale_image:
             self.greyscale_image = np.dot(self.array[:, :, :3], self.greyscale_coeffs)
         return self.greyscale_image
@@ -103,6 +109,10 @@ class Image:
         return self.min_energy_image
 
     def debug(self, seam):
+        """
+        :param seam: current seam in the image (2 dim array with one column/row)
+        :return: a debug image showing the actual image being processed with the currently chosen seam
+        """
         image = self.array
         color = [255] * 3
         seam_array = seam.array

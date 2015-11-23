@@ -70,15 +70,20 @@ class SeamCarver:
         result = np.zeros((self.image.height, self.image.width + 1, self.image.dim))
         for i in range(0, self.image.dim):
             for j in range(0, self.image.height):
-                x = seam[j, 0]
+                x = seam[0, j] if seam.transposed else seam[j, 0]
                 if x < self.image.width - 2:
                     vector_average = np.array([(self.image.array[j, x, i] + self.image.array[j, x + 1, i])/2.0])
                 else:
                     vector_average = np.array([(self.image.array[j, x, i] + self.image.array[j, x - 1, i])/2.0])
-                tmp = np.append(self.image.image[j, 0: seam[j, 0] + 1, i],
-                                vector_average)
-                result[j, :, i] = np.append(tmp, self.image.array[j, seam[j, 0] + 1: self.image.width, i])
+
+                tmp = np.append(self.image.image[j, 0: x + 1, i], vector_average)
+                result[j, :, i] = np.append(tmp, self.image.array[j, x + 1: self.image.width, i])
+
         debug_image = self.image.debug(seam)
+        self.debug_animation.add(Image.from_image_array(debug_image, transposed=self.image.transposed))
+
+        if self.image.transposed:
+            result = result.transpose(1, 0, 2)
 
         return Image.from_image_array(array=result, transposed=seam.transposed)
 
@@ -90,18 +95,31 @@ class SeamCarver:
             self.image = self.cut_seam()
             current_iteration += 1
 
+    def add_seams(self, desired_width):
+        iterations = desired_width - self.image.width
+        current_iteration = 0
+        while current_iteration < iterations:
+            print("Resizing from %s to %s" % (self.image.width, self.image.width+1))
+            self.image = self.add_seam()
+            current_iteration += 1
+
     def resize(self, desired_width, desired_height):
-        # this function should perform adding/ removing seams as needed
-        self.cut_seams(desired_width)
-        self.image.transposed = True
-        self.cut_seams(desired_height)
+        if desired_width < self.image.width:
+            self.cut_seams(desired_width)
+        else:
+            self.add_seams(desired_width)
+
+        if desired_height < self.image.height:
+            self.image.transposed = True
+            self.cut_seams(desired_height)
+        else:
+            self.image.transposed = True
+            self.add_seams(desired_height)
+
         return self.image
 
 if __name__ == '__main__':
-    # create gif showing each steps
     sc = SeamCarver(IMAGE_FILE)
-    # for x in range(100):
-    #     sc.image = Image().from_image(sc.add_seam())
-    image = sc.resize(420, 420)
+    image = sc.resize(400, 400)
     # scipy.misc.imsave("final.jpg", sc.image)
     sc.debug_animation.export_gif()

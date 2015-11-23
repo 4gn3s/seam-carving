@@ -1,14 +1,16 @@
 import numpy as np
-import scipy.misc
 from moviepy.editor import ImageSequenceClip
 
 
 class AnimationMaker:
+    """
+    Makes an animation out of a sequence of Images
+    """
     def __init__(self):
         self.sequence = []
         self.max_width = 0
         self.max_height = 0
-        self.max_dimensions= 0
+        self.max_dimensions = 0
         self.default_FPS = 25
 
     def add(self, image):
@@ -26,7 +28,8 @@ class AnimationMaker:
         for i, image in enumerate(self.sequence):
             image_array = image.array
             resized = np.zeros((self.max_height, self.max_width, self.max_dimensions))
-            resized[:image_array.shape[0], :image_array.shape[1], :image_array.shape[2]] = image_array
+            shape = image_array.shape
+            resized[:shape[0], :shape[1], :shape[2]] = image_array
             new_sequence.append(resized)
         return ImageSequenceClip(new_sequence, fps=self.default_FPS)
 
