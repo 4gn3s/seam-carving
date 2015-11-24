@@ -58,6 +58,12 @@ Adding new seams is a more tricky part. Insertion of new seams can be thought of
 ![animation resize to bigger](https://github.com/4gn3s/seam-carving/raw/master/static/bigger.gif)
 
 ## Todo
-* algorithm choosing the currently optimal horizontal/vertical seam to remove
+* algorithm choosing the currently optimal horizontal/vertical seam to remove (as described [here](http://kirilllykov.github.io/blog/2013/06/06/seam-carving-algorithm/))
+* use [forward energy](http://cs.brown.edu/courses/cs129/results/proj3/taox/) in seam removal
 * add mask processing to allow object removal (mask defines an area with energy equal to zero)
 * seam carving for videos: add another dimension time *t*
+
+## Interesting resources:
+
+* [http://www.cs.cmu.edu/afs/andrew/scs/cs/15-463/f07/proj2/www/wwedler/](http://www.cs.cmu.edu/afs/andrew/scs/cs/15-463/f07/proj2/www/wwedler/)
+* [http://jeremykun.com/2013/03/04/seam-carving-for-content-aware-image-scaling/](http://jeremykun.com/2013/03/04/seam-carving-for-content-aware-image-scaling/)
