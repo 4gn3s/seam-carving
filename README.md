@@ -58,7 +58,6 @@ Adding new seams is a more tricky part. Insertion of new seams can be thought of
 ![animation resize to bigger](https://github.com/4gn3s/seam-carving/raw/master/static/bigger.gif)
 
 ## Todo
-* better seam insertion algorithm (to prevent inserting the same seam again and again)
 * algorithm choosing the currently optimal horizontal/vertical seam to remove
 * add mask processing to allow object removal (mask defines an area with energy equal to zero)
 * seam carving for videos: add another dimension time *t*
